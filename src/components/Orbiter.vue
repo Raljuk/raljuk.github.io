@@ -18,6 +18,7 @@
         :key="person.id"
         class="person"
         :style="getPersonStyles(day, index, personIndex)"
+        v-tooltip="person"
       >
         <img
           class="photo"
@@ -169,6 +170,7 @@ export default defineComponent({
 
   .day1, .day9 {
     opacity: 0;
+    pointer-events: none;
   }
 
   .orbiter {
