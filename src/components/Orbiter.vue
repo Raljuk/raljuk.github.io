@@ -7,7 +7,7 @@
       :class="['day', `day${orbiter[index]}`]"
       :style="getDayStyles(index)">
 
-      <div v-if="orbiter[index] === week.length - 1" class="date">
+      <div class="date" :class="{visible: orbiter[index] === week.length - 1}">
         <span class="dateText">
           {{ getDate(day) }}
         </span>
@@ -18,7 +18,7 @@
         :key="person.id"
         class="person"
         :style="getPersonStyles(day, index, personIndex)"
-        v-tooltip="person"
+        v-person-tooltip="person"
       >
         <img
           class="photo"
@@ -40,7 +40,12 @@
 import { defineComponent } from 'vue';
 import axios from 'axios';
 import { Data, Day } from '@/components/types';
-import { API_URL, ORBITER_ORDER } from './constants';
+import {
+  API_URL,
+  KEY_DOWN,
+  KEY_UP,
+  ORBITER_ORDER,
+} from './constants';
 
 export default defineComponent({
   name: 'Orbiter',
@@ -56,25 +61,27 @@ export default defineComponent({
   mounted() {
     this.fetchWeek();
 
-    window.addEventListener('wheel', this.onScroll);
+    window.addEventListener('keydown', this.onKeydown);
   },
 
   unmounted() {
-    window.removeEventListener('wheel', this.onScroll);
+    window.removeEventListener('keydown', this.onKeydown);
   },
 
   methods: {
-    onScroll(event: Event & { deltaY: number }): void {
-      if (this.inProcess) {
+    onKeydown(event: Event & { keyCode: number }): void {
+      const { keyCode } = event;
+
+      if (this.inProcess || ![KEY_DOWN, KEY_UP].includes(keyCode)) {
         return;
       }
 
       this.inProcess = true;
 
       setTimeout(() => {
-        if (event.deltaY < 0) {
+        if (keyCode === KEY_DOWN) {
           this.orbiter.unshift(this.orbiter.pop());
-        } else {
+        } if (keyCode === KEY_UP) {
           this.orbiter.push(this.orbiter.shift());
         }
 
@@ -208,11 +215,22 @@ export default defineComponent({
   }
 
   .date {
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
     position: relative;
     color: #fff;
     display: flex;
     justify-content: center;
-    z-index: 10;
+    left: 0;
+    opacity: 0;
+    right: 0;
+    text-align: center;
+    transition: all 0.5s ease;
+
+    &.visible {
+      opacity: 1;
+    }
   }
 
   .dateText {
@@ -225,6 +243,7 @@ export default defineComponent({
     position: absolute;
     background: #000;
     border: none;
+    border-radius: 50%;
     bottom: calc(50% + 30px);
     cursor: pointer;
     z-index: 12;

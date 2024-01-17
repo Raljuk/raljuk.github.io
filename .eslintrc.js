@@ -17,5 +17,6 @@ module.exports = {
     'linebreak-style': 'off',
     'vue/multi-word-component-names': 'off',
     'import/no-extraneous-dependencies': 'off',
+    'no-plusplus': 'off',
   },
 };

@@ -4,29 +4,32 @@ import { DirectiveBinding } from 'vue';
 export default {
   mounted(element: HTMLElement, binding: DirectiveBinding) {
     // eslint-disable-next-line no-param-reassign
-    element.onmouseover = () => {
-      const PersonTooltip = {
+    element.onmouseover = (event) => {
+      event.stopPropagation();
+
+      const PersonTooltipSettings = {
         width: 300,
         height: 110,
-        indentY: 10,
+        indentY: -90,
       };
       const coords: DOMRectReadOnly = element.getBoundingClientRect();
       const { clientWidth, clientHeight } = document.documentElement;
-      const l = clientWidth < PersonTooltip.width
-        ? `${document.documentElement.clientWidth - PersonTooltip.width}px`
+      const l = clientWidth < PersonTooltipSettings.width
+        ? `${document.documentElement.clientWidth - PersonTooltipSettings.width}px`
         : `${coords.x}px`;
-      const t = clientHeight < PersonTooltip.height
-        ? `${coords.y - clientHeight - PersonTooltip.indentY}px`
-        : `${coords.y + coords.height + PersonTooltip.indentY}px`;
+      const t = clientHeight < PersonTooltipSettings.height
+        ? `${coords.y - clientHeight - PersonTooltipSettings.indentY}px`
+        : `${coords.y + coords.height + PersonTooltipSettings.indentY}px`;
 
       const {
         city,
+        id,
         img,
         name,
         position,
       } = binding.value;
 
-      const tooltip = `<div class="person-tooltip" style="top:${t};left:${l}">
+      const tooltip = `<div class="person-tooltip" style="top:${t};left:${l}" id="tooltip-${id}${coords.x}${coords.y}">
         <div class="tooltipContent">
 
           <img
@@ -56,10 +59,16 @@ export default {
 
       document.body.insertAdjacentHTML('beforeend', tooltip);
 
-      // eslint-disable-next-line no-param-reassign
-      element.onmouseout = () => {
-        document.querySelector('.person-tooltip')!.remove();
+      const tooltipElement = document.getElementById(`tooltip-${id}${coords.x}${coords.y}`) as HTMLElement;
+      const removeTooltip = () => {
+        tooltipElement.remove();
+        document.removeEventListener('mouseover', removeTooltip);
       };
+
+      tooltipElement.onmouseover = (e) => e.stopPropagation();
+      tooltipElement.onmouseleave = () => tooltipElement.remove();
+
+      document.addEventListener('mouseover', removeTooltip);
     };
   },
 };
